@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block css %}
+{% load humanize %}
+{% load paystack %}
+
+<title>Purchase Confirmation - Jane's Fashion</title>
+
+{% endblock css %}
+{% block content %}
+
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Purchase Confirmation</h1>
+					<ol class="breadcrumb">
+						<li><a href="#">Home</a></li>
+						<li class="active">Purchase confirmation</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+<div class="page-wrapper">
+  	<div class="purchase-confirmation shopping">
+    	<div class="container">
+            <div class="row">
+                <div class="col-md-6 text-left p-b-8">
+
+
+                    <a href="{% url 'core:order' %}" class="btn btn-main"><i class="tf-ion-android-arrow-back"></i> Go Back</a>
+                </div>
+            </div>
+      		<div class="row">
+        		<div class="col-md-8 col-md-offset-2">
+          			<div class="block ">
+            			<div class="purchase-confirmation-details">
+				            <table id="purchase-receipt" class="table">
+				                <thead>
+									<tr>
+					                    <th><strong>Payment For :</strong></th>
+					                    <th> JNF{{order.order_id}}</th>
+				                  	</tr>
+				                </thead>
+
+				                <tbody>
+
+				          
+
+				                  	<tr>
+				                    	<td><strong>Payment Method:</strong></td>
+				                    	<td>Paystack</td>
+				                  	</tr>
+				                  	<tr>
+				                    	<td><strong>Amount:</strong></td>
+				                    	<td> &#8358; {{order.get_total|intcomma}}</td>
+				                  	</tr>
+                                          	{% for item in order.items.all %}
+				                  	<tr>
+                                  
+				                    	<td><strong>
+											{% if order.items.all.count == 0 or order.items.all.count == 1 %}
+											Item
+											{% else %}
+											Items
+											{% endif %}</strong></td>
+									
+											<td>{{item.item.title}} x {{item.quantity}}</td>
+                                    
+                                    
+		
+				                    </tr>
+                                 
+                                   
+										{% endfor %}
+								
+								</tbody>
+								
+							</table>
+				
+              			</div>
+            		</div>
+          		</div>
+        	</div>
+      	</div>
+    </div>
+</div>
+{% endblock content %}

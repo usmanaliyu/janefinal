@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block css %}
+<title>My Address - Jane's Fashion</title>
+{% endblock css %}
+{% block content %}
+
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Dashboard</h1>
+					<ol class="breadcrumb">
+						<li><a href="{% url 'core:home' %}">Home</a></li>
+						<li class="active">My Address</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<section class="user-dashboard page-wrapper">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <ul class="list-inline dashboard-menu text-center">
+          <li><a href="{% url 'core:dashboard' %}">Dashboard</a></li>
+          <li><a href="{% url 'core:order' %}">Orders</a></li>
+          <li><a class="active" href="{% url 'core:address' %}">Address</a></li>
+  
+        </ul>
+        <div class="dashboard-wrapper user-dashboard">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Address</th>
+                  <th>Country</th>
+                  <th class="col-md-2 col-sm-3">Phone</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for address in order %}
+                <tr>
+                  <td>{{ forloop.counter}}</td>
+                  <td>{{address.address.user.first_name|title}} {{address.address.user.last_name|title}}</td>
+                  <td>{{address.address.address}}</td>
+                  <td>{{address.address.country}}</td>
+                  <td>{{address.address.phone}}</td>
+                  <td>
+                    {% comment %} <div class="btn-group" role="group">
+                      <button type="button" class="btn btn-default"><i class="tf-pencil2" aria-hidden="true"></i></button>
+                      <button type="button" class="btn btn-default"><i class="tf-ion-close" aria-hidden="true"></i></button>
+                    </div> {% endcomment %}
+                  </td>
+                </tr>
+                {% empty%}
+
+                <td><p>You have saved no address yet</p></td>
+           {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}

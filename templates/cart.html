@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<title> Cart - Jane's Fashion </title>
+{% endblock css %}
+
+{% load humanize %}
+{% block content %}
+
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Cart</h1>
+					<ol class="breadcrumb">
+						<li><a href="{% url 'core:home' %}">Home</a></li>
+						<li class="active">Cart</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+
+<div class="page-wrapper">
+  <div class="cart shopping">
+    <div class="container">
+      <div class="row table-responsive">
+        <div class="col-md-8 col-md-offset-2">
+          <div class="block">
+            <div class="product-list">
+              <form method="post">
+                <table class="table">
+                  <thead>
+                    <tr> <th class="">#</th>
+                      <th class="">Item Name</th>
+                      <th class="">Item Price</th>
+					   <th class="">Quantity</th>
+                      <th class="">Actions</th>
+                    </tr>
+				  </thead>
+				  {% for order_item in object.items.all %}
+                  <tbody>
+                    <tr class="">
+						<td class=""><p class="fs-18">{{forloop.counter}}</p></td>
+                      <td class="">
+                        <div class="product-info">
+                
+                          <a href="">{{order_item.item.title|title}}</a>
+                        </div>
+					  </td>
+				
+                      <td class=""><p class="fs-18">	&#8358;  {{order_item.item.price|intcomma}}</p></td>
+					<td class="column-4">
+								<div class="flex-w bo5 of-hidden w-size17">
+									<a href="{{order_item.item.get_remove_single_from_cart_url}}" class="btn-num-product-down color1 flex-c-m size7 bg8 eff2">
+										<i class="tf-ion-minus" aria-hidden="true"></i>
+									</a>
+
+									<input class="size8 m-text18 t-center num-product" type="number" name="num-product1" value="{{order_item.quantity}}">
+
+									<a href="{{order_item.item.get_add_to_cart_url}}" class="btn-num-product-up color1 flex-c-m size7 bg8 eff2">
+										<i class="tf-ion-plus" aria-hidden="true"></i>
+									</a>
+								</div>
+							</td>
+                      <td class="">
+                        <a class="product-remove" href="{{order_item.item.get_remove_from_cart_url}}"> <i class="tf-ion-trash-b"></i> Remove</a>
+                      </td>
+                    </tr>
+              
+				  </tbody>
+				  {% empty %}
+				  <tr class="text-center">
+					<p>YOUR CART IS EMPTY</p>
+				  </tr>
+	
+				  {% endfor %}
+				</table>
+		
+				<tr class="text-left">
+					{% if object.get_total %}
+					<a href="{% url 'core:checkout' %}" class="btn btn-main pull-right">Checkout</a>
+					{% else %}
+					<i class="text-center tf-ion-ios-cart-outline fs-34"></i> <br>	
+					<h2 class="text-left">You can still find what you like</h2>
+					<p></p>			<a href="{% url 'core:shop' %}" class="btn btn-main mt-20">Return to shop</a>
+					{% endif %}
+				  </tr>
+				
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<section class="empty-cart page-wrapper">
+	<div class="container">
+</div>
+  </section>
+{% endblock content %}

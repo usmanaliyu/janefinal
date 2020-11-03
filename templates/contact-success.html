@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+
+
+<title> Contact Success - Jane's Fashion</title>
+{% endblock css %}
+
+{% block content %}
+
+<section class="page-header">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="content">
+          <h1 class="page-name">Contact Success </h1>
+          <ol class="breadcrumb">
+            <li><a href="{% url 'core:home' %}">Home</a></li>
+            <li class="active">Contact Success </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page-wrapper success-msg">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 col-md-offset-3">
+        <div class="block text-center">
+          <img class="img-success" src="{% static 'images/sapiens.svg' %}" alt="">
+          <h2 class="text-center ">Thank you! For your mail</h2>
+          <p>We have received your mail and we will reply shortly.</p>
+          <a href="{% url 'core:shop' %}" class="btn btn-main mt-20">Go Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /.page-warpper -->
+{% endblock content %}

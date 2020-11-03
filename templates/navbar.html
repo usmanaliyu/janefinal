@@ -1,0 +1,111 @@
+{% load cart_template_tags %}
+
+{% load static %}
+
+<!-- Start Top Header Bar -->
+<section class="top-header">
+	<div class="container">
+		<div class="row">
+
+			<div class="col-md-4 ml-auto col-xs-12 col-sm-4">
+				<!-- Site Logo -->
+
+			</div>
+			<div class="col-md-4 col-xs-12 col-sm-4">
+				<div class="contact-number">
+					<form action="{% url 'blog:search'%}" method='GET'><input type="search" class="form-control"
+							value="{{ request.GET.q }}" name="q" placeholder="Search..."></form>
+
+				</div>
+			</div>
+			<div class="col-md-4 col-xs-12 col-sm-4">
+				<!-- Cart -->
+				<ul class="top-menu text-right list-inline">
+
+					<li class="dropdown search dropdown-slide">
+						<a href="{% url 'core:cart'%}"> <i class="tf-ion-ios-cart fs-24"></i>
+							{{ request.user|cart_item_count }} </a>
+					</li>
+					<!-- Search -->
+
+
+					{% if request.user.is_authenticated %}
+					<li class="dropdown search dropdown-slide">
+						<a href="{% url 'core:dashboard'%}"> <i class="tf-ion-android-favorite-outline fs-24"></i>
+							Favourite </a>
+					</li>
+					<li class="dropdown search dropdown-slide">
+						<a href="{% url 'account_logout' %}"> <i class="tf-ion-log-out fs-24"></i> Logout </a>
+
+
+
+					</li>
+
+					{% else %}
+
+					<li class="dropdown search dropdown-slide">
+
+
+						<a href="{% url 'account_login' %}"> <i class="  tf-profile-male"></i> Login</a> </li>
+					{% endif %}
+
+
+					</li><!-- / Search -->
+
+
+
+				</ul><!-- / .nav .navbar-nav .navbar-right -->
+			</div>
+		</div>
+	</div>
+</section><!-- End Top Header Bar -->
+
+
+<!-- Main Menu Section -->
+<section class="menu">
+	<nav class="navbar navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<h2 class="menu-title"><a href="{% url 'core:home' %}"><img src="{% static 'images/logo.svg' %}"
+							alt="Jane's Fashion Logo "></a></h2>
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+					aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+
+			</div><!-- / .navbar-header -->
+
+			<!-- Navbar Links -->
+			<div id="navbar" class="navbar-collapse collapse text-center">
+				<ul class="nav navbar-nav">
+
+					<!-- Home -->
+					<li class="dropdown ">
+						<a href="{% url 'core:home' %}">Home</a>
+					</li><!-- / Home -->
+
+
+					<!-- Elements -->
+
+					<li class="dropdown ">
+						<a href="{% url 'core:shop' %}">Shop</a>
+					</li><!-- / Home -->
+					{% for item in category_list  %}
+					<li class="dropdown ">
+						<a href="{{ item.get_category_url }}">{{ item.name|title}}</a>
+					</li>
+					{% endfor %}
+				
+
+
+
+				</ul><!-- / .nav .navbar-nav -->
+
+			</div>
+			<!--/.navbar-collapse -->
+		</div><!-- / .container -->
+	</nav>
+</section>

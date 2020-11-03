@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block css %}
+{% load thumbnail %}
+<title>Shop - Jane's Fashion</title>
+{% endblock css %}
+
+{% load humanize %}
+{% load static %}
+{% block content %}
+
+
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Shop</h1>
+					<ol class="breadcrumb">
+						<li><a href="{% url 'core:home' %}">Home</a></li>
+						<li class="active">Shop</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+<section class="products section">
+	<div class="container">
+		<div class="row">
+		
+			<div class="col-md-9">
+				<div class="row">
+					{% for item in filter.qs %}
+			<div class="col-sm-4 p-l-30 p-r-30">
+				<div class="product-item">
+					<div class="product-thumb">
+						<span class="bage">New</span>
+						{% thumbnail item.image '300x300' crop="center" as jane %}
+						<img class="img-responsive" src="{{jane.url}}" width="{{jane.width}}" 
+						height="{{jane.height}}" alt="jane's Fashion {{item.title|title}}" />
+						{% endthumbnail %}
+						<div class="preview-meta">
+							<ul>
+								<li>
+									<span  data-toggle="modal" data-target="#product-modal">
+										<i class="tf-ion-ios-search-strong"></i>
+									</span>
+								</li>
+								<li>
+			                        <a href="{{item.get_wishlist_shop}}" ><i class="tf-ion-ios-heart"></i></a>
+								</li>
+								<li>
+									<a href="{{item.get_absolute_url }}"><i class="tf-ion-eye"></i></a>
+								</li>
+							</ul>
+                      	</div>
+					</div>
+					<div class="product-content">
+						<h4>{{item.title|title}}</h4>
+						<p class="price">&#8358;{{item.price|intcomma}}</p>
+					</div>
+				</div>
+			</div>
+			{% empty %}
+                    <p align="center">No search result available</p>
+{% endfor %}
+
+				</div>
+			
+	
+				</div>
+				<div class="col-md-3">
+					<div class="widget">
+						<h4 class="widget-title">Sort By</h4>
+						<form method="GET" >
+							
+						{{ filter.form|crispy }}
+						<button class="btn btn-main" type="submit">Submit</button>
+					
+						</form>
+					</div>
+					<div class="widget product-category">
+						<h4 class="widget-title">Categories</h4>
+						<div class="panel-group commonAccordion" >
+							  <div class="panel">
+								<div class="panel-heading" >
+									  <h4 class="panel-title">
+										{% for item in category_list  %}
+										<li><a href="{{ item.get_category_url }}">{{ item.name|title}} <span class="colored-jane">( {{item.get_category_count }} )</span> </a>  </li>
+										{% endfor %}
+									  </h4>
+								</div>
+							
+						  </div>
+						 
+						
+						</div>
+						
+					</div>
+				</div>
+				<div class="text-center">
+					{% if is_paginated %}
+					<ul class="pagination post-pagination">
+						{% if page_obj.has_previous %}
+						<li><a href="?page={{page_obj.previous_page_number}}">Prev</a>
+						</li>
+						<li ><a href="?page={{page_obj.previous_page_number}}">{{page_obj.previous_page_number}}</a>
+						</li>
+						{% endif %}
+						<li class="active"><a href="?page={{page_obj.number}}">{{page_obj.number}}</a>
+						</li>
+				
+						{% if page_obj.has_next %}
+						<li ><a href="?page={{page_obj.next_page_number}}">{{page_obj.next_page_number}}</a>
+						</li>
+						<li><a href="?page={{page_obj.next_page_number}}">Next</a>
+						</li>
+						{% endif %}
+					</ul>
+
+					{% endif %}
+				</div>
+		
+				</div>				
+			</div>
+		
+		</div>
+	</div>
+</section>
+
+{% include 'banner1.html' %}
+
+{% include 'banner2.html' %}
+
+
+
+
+	<!-- Modal -->
+	<div class="modal product-modal fade" id="product-modal">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<i class="tf-ion-close"></i>
+		</button>
+		  <div class="modal-dialog " role="document">
+			<div class="modal-content">
+				  <div class="modal-body">
+					<div class="row">
+						<div class="col-md-8 col-sm-6 col-xs-12">
+							<div class="modal-image">
+								<img class="img-responsive" src="images/shop/products/modal-product.jpg" alt="product-img" />
+							</div>
+						</div>
+						<div class="col-md-4 col-sm-6 col-xs-12">
+							<div class="product-short-details">
+								<h2 class="product-title">GM Pendant, Basalt Grey</h2>
+								<p class="product-price">&#8358; 200</p>
+								<p class="product-short-description">
+									Lorem ipsum dolor sit amet, consectetur adipisicing elit. Rem iusto nihil cum. Illo laborum numquam rem aut officia dicta cumque.
+								</p>
+								<a href="cart.html" class="btn btn-main">Add To Cart</a>
+								<a href="product-single.html" class="btn btn-small">View Product Details</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		  </div>
+	</div><!-- /.modal -->
+{% include 'newsletter.html' %}
+
+{% include 'notification.html' %}
+{% endblock content %}

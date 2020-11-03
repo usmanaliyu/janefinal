@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{%  load static %}
+{% block css %}
+<title>Paystack Success - Jane's Fashion</title>
+
+{% endblock css %}
+{% block content %}
+
+<!-- Page Wrapper -->
+<section class="page-wrapper success-msg">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 col-md-offset-3">
+        <div class="block text-center">
+
+
+          <h2 class="text-center fs-24 ">Thank you! For your payment</h2> <br>
+          <p class="fs-18">We will contact you shortly <br>
+            You are amazing</p>
+          <img src="{% static 'images/success.svg' %}" alt=""> <br>
+          <a href="{% url 'core:shop' %}" class="btn btn-main mt-20">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section><!-- /.page-warpper -->
+{% endblock content %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block css %}
+
+<title>Returns Policy - Jane's Fashion</title>
+{% endblock css %}
+{% block content %}
+
+
+<section class="page-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="content">
+                    <h1 class="page-name">Returns Policy</h1>
+                    <ol class="breadcrumb">
+                        <li><a href="{% url 'core:home' %}">Home</a></li>
+                        <li class="active">Returns Policy</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-wrapper">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Returns Policy</h2>
+
+                <p class="m-b-8">support@janes-fashion.com</p>
+            </div>
+            <div class="col-md-8">
+
+                <h4 class="f-s-34 p-b-8">Refund & Returns</h4>
+                <p class="f-s-18 p-b-8"> When the item received is not what is paid for, you are entitled to a refund
+                    within 7 days, from the day you receive the item.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+{% endblock content %}

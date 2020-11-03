@@ -1,0 +1,20 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% block css %}
+<title>{% trans "Account Inactive" %} - Jane's Fashion </title>
+
+{% endblock %}
+
+{% block content %}
+<section class="signin-page account">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+          <div class="block text-center">
+<h1>{% trans "Account Inactive" %}</h1>
+
+<p>{% trans "This account is inactive." %}</p>
+</div></div></div></div></section>
+{% endblock %}

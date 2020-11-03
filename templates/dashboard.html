@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block css %}
+<title>Dashboard - Jane's Fashion</title>
+{% load humanize %}
+{% endblock css %}
+{% block content %}
+
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Dashboard</h1>
+					<ol class="breadcrumb">
+						<li><a href="{% url 'core:home' %}">Home</a></li>
+						<li class="active">My Account</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+<section class="user-dashboard page-wrapper">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<ul class="list-inline dashboard-menu text-center">
+					<li><a class="active" href="{% url 'core:dashboard' %}">Dashboard</a></li>
+					<li><a href="{% url 'core:order' %}">Orders</a></li>
+					<li><a href="{% url 'core:address' %}">Address</a></li>
+			
+				</ul>
+				<div class="dashboard-wrapper user-dashboard">
+					<div class="media">
+						<div class="pull-left">
+						
+						</div>
+						<div class="media-body">
+							<h2 class="media-heading">Welcome {{request.user.first_name}} {{request.user.last_name}}</h2>
+							<p>
+ </p>
+						</div>
+					</div>
+					<div class="total-order mt-20">
+						<h4>Your Wishlist</h4>
+						<div class="table-responsive">
+							<table class="table">
+								<thead>
+									<tr>
+										<th>#</th>
+										<th>Item</th>
+									
+										<th>Price</th>
+										<th>Buy Now</th>
+									</tr>
+								</thead>
+								<tbody>
+								{% for item in wishlist %}
+									<tr>
+										<td><a href="#">{{forloop.counter}}</a></td>
+										<td>{{item.item.title}}</td>
+									
+										<td>{{item.item.price|intcomma}}</td>
+										    <td>
+               <div class="btn-group" role="group">
+                      <a href={{item.item.get_absolute_url}}  class="btn btn-default"><i class="tf-ion-android-cart" aria-hidden="true"></i></a>
+                   
+                    </div> 
+                  </td>
+									</tr>
+									{% empty%}
+
+									<td><p>You have saved no item in your wishlist yet.</p></td>
+									{% endfor %}
+							
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock content %}

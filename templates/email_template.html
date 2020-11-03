@@ -1,0 +1,13 @@
+{% load humanize %}
+
+Hello {{name}} {{name_2}},
+
+We have received your order of {% for order_item in order.items.all %} 
+{{ order_item.quantity }} x {{order_item.item.title }} {% endfor %} for ₦{{amount|intcomma}}..
+
+
+We will contact shortly.
+
+Thank you for choosing us.
+
+Cheers!!

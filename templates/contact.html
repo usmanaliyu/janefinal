@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+
+<title>Contact Us - Jane's Fashion</title>
+{% endblock css %}
+
+{% load crispy_forms_tags %}
+{% block content %}
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Contact Us</h1>
+					<ol class="breadcrumb">
+						<li><a href="{% url 'core:home' %}">Home</a></li>
+						<li class="active">Contact</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+
+
+<section class="page-wrapper">
+	<div class="contact-section">
+		<div class="container">
+			<div class="row">
+				<!-- Contact Form -->
+				<div class="contact-form col-md-6 " >
+					<form id="contact-form" method="post" >
+					{% csrf_token %}
+						<div class="form-group">
+						{{form.name}}
+						</div>
+						
+						<div class="form-group">
+						{{form.email}}
+						</div>
+						
+						<div class="form-group">
+						{{form.subject}}
+						</div>
+						
+						<div class="form-group">
+								{{form.message}}
+						</div>
+						
+						
+						<div id="cf-submit">
+							<input type="submit" id="contact-submit" class="btn btn-transparent" value="Submit">
+						</div>						
+						
+					</form>
+				</div>
+				<!-- ./End Contact Form -->
+				
+				<!-- Contact Details -->
+				<div class="contact-details col-md-6 " >
+					<div class="google-map">
+						<div id="map">
+						<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3939.5259019514297!2d7.3636794147872715!3d9.10687939346693!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x104dd9cb506388fd%3A0xe118352312a9b4e5!2sJane&#39;s%20Fashion!5e0!3m2!1sen!2sza!4v1600688399318!5m2!1sen!2sza" frameborder="0" style="border:0;" class="map" allowfullscreen="" aria-hidden="false" tabindex="0"></iframe>
+						</div>
+					</div>
+					<ul class="contact-short-info" >
+						<li>
+							<i class="tf-ion-ios-home"></i>
+							<span> Address: Efab Queens Estate, Abuja </span>
+						</li>
+						<li>
+							<i class="tf-ion-android-phone-portrait"></i>
+							<span>Phone: +234 818 171 8700</span>
+						</li>
+				
+						<li>
+							<i class="tf-ion-android-mail"></i>
+							<span>Email: hello@example.com</span>
+						</li>
+					</ul>
+					<!-- Footer Social Links -->
+					<div class="social-icon">
+						<ul>
+							<li><a class="fb-icon" href="#"><i class="tf-ion-social-facebook"></i></a></li>
+							<li><a href="#"><i class="tf-ion-social-twitter"></i></a></li>
+							<li><a href="#"><i class="tf-ion-android-mail"></i></a></li>
+							
+						</ul>
+					</div>
+					<!--/. End Footer Social Links -->
+				</div>
+				<!-- / End Contact Details -->
+					
+				
+			
+			</div> <!-- end row -->
+		</div> <!-- end container -->
+	</div>
+</section>
+	
+{% endblock content %}

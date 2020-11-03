@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block css %}
+{% load humanize %}
+{% load paystack %}
+
+<title>Purchase Confirmation - Jane's Fashion</title>
+
+{% endblock css %}
+{% block content %}
+
+<section class="page-header">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="content">
+					<h1 class="page-name">Purchase Confirmation</h1>
+					<ol class="breadcrumb">
+						<li><a href="#">Home</a></li>
+						<li class="active">Purchase confirmation</li>
+					</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+
+<div class="page-wrapper">
+  	<div class="purchase-confirmation shopping">
+    	<div class="container">
+      		<div class="row">
+        		<div class="col-md-8 col-md-offset-2">
+          			<div class="block ">
+            			<div class="purchase-confirmation-details">
+				            <table id="purchase-receipt" class="table">
+				                <thead>
+									<tr>
+					                    <th><strong>Payment For :</strong></th>
+					                    <th> JNF{{order.order_id}}</th>
+				                  	</tr>
+				                </thead>
+
+				                <tbody>
+
+				          
+
+				                  	<tr>
+				                    	<td><strong>Payment Method:</strong></td>
+				                    	<td>Paystack</td>
+									  </tr>
+									  <tr>
+				                    	<td><strong>Shipping</strong></td>
+										
+											<td>+${{ order.coupon.amount }}</td>
+										
+									</tr>
+				                  	<tr>
+				                    	<td><strong>Amount:</strong></td>
+				                    	<td> &#8358; {{order.get_total|intcomma}}</td>
+				                  	</tr>
+				                  	<tr>
+				                    	<td><strong>Items</strong></td>
+										{% for order_item in order.items.all %}
+											<td>{{order_item.item.title}}</td>
+										{% endfor %}
+									</tr>
+
+									
+									
+			
+								
+								</tbody>
+								
+							</table>
+						<div class="text-center m-t-30">	{% paystack_button amount=amount email=email button_class="btn btn-main" %}</div>
+              			</div>
+            		</div>
+          		</div>
+        	</div>
+      	</div>
+    </div>
+</div>
+{% endblock content %}

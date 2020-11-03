@@ -1,0 +1,24 @@
+{% load static %}
+
+	<!-- Banner video -->
+	{% for item in homepage %}
+	<section class="parallax0 parallax100" style="background: url({{item.image.url}}) fixed no-repeat center center/cover;">
+		<div class="overlay0 p-t-190 p-b-200">
+			<div class="flex-col-c-m p-l-15 p-r-15">
+				<span class="m-text9 p-t-45 fs-20-sm">
+				{{item.title|title}}
+				</span>
+
+				<h3 class="l-text1 fs-35-sm">
+					{{item.description|title}}
+				</h3>
+
+				<a href="{{item.link}}" class="btn btn-small s-text4  cs-pointer p-t-10 p-b-10" >
+					<i class="tf-ion-ios-play fs-24" aria-hidden="true"></i>
+					Play Video
+				</a>
+			</div>
+		</div>
+	</section>
+
+	{% endfor %}

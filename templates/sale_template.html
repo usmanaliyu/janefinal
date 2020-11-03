@@ -1,0 +1,10 @@
+{% load humanize %}
+
+Hello, we have received an order from {{name}} {{name_2}},
+
+We have received the order of {% for order_item in order.items.all %} 
+{{ order_item.quantity }} x {{order_item.item.title }} {% endfor %} for ₦{{amount|intcomma}}..
+
+The user, {{name}} {{name_2}} can be reached via {{address}} {{country}},{{state}} with the phpone number {{number}}
+
+Do contact the user immediately.
