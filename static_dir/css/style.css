@@ -106,7 +106,13 @@ input[type="tel"]:focus {
   box-shadow: none;
   border-radius: 0;
   border: 1px solid var(--black);
-  outline: none;
+  outline: none !important;
+  padding: 15px;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
 }
 
 .form-control:focus {
