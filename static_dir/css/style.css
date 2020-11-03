@@ -1,36 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@300;400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@300;400;600;700&display=swap");
 body {
   line-height: 1.5;
-  font-family: 'Bai Jamjuree', sans-serif !important  ;
+  /* font-family: "Bai Jamjuree", sans-serif !important  ; */
+  font-family: "SF-Pro";
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden  !important ;
+  overflow-x: hidden !important ;
   background-color: var(--white);
   color: var(--black);
 }
 
-html{
+html {
   scroll-behavior: smooth;
 }
-:root{
-
-  --jane: #B97778;
+:root {
+  --jane: #b97778;
   --white: #ffffff;
   --black: #000000;
 }
 
 p {
-  font-family: 'Bai Jamjuree', sans-serif !important ;
+  /* font-family: "Bai Jamjuree", sans-serif !important ; */
+  font-family: "SF-Pro";
   color: #757575 !important;
   font-size: 18px !important;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Bai Jamjuree', sans-serif  !important  ;
+@font-face {
+  src: url("./SFProText-Medium.ttf");
+  font-family: "SF-Pro";
 }
 
 h1,
@@ -39,7 +36,17 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 400  !important ;
+  /* font-family: "Bai Jamjuree", sans-serif !important  ; */
+  font-family: "SF-Pro";
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400 !important ;
 }
 
 ol,
@@ -83,7 +90,7 @@ input[type="tel"] {
   outline: none;
   font-weight: 200;
   font-size: 12px;
-  border: 1px solid var(--black)!important;
+  border: 1px solid var(--black) !important;
   transition: all 0.4s ease-in !important;
 }
 
@@ -122,30 +129,29 @@ input[type="tel"]:focus {
   transition: all 0.4s ease;
 }
 
-.product-description{
+.product-description {
   width: 100%;
   height: 100%;
 }
 
-.img-responsive-blog{
+.img-responsive-blog {
   width: 100%;
-height: 500px;
+  height: 500px;
 }
 
-.img-success{
+.img-success {
   width: 100%;
-height: 500px;
+  height: 500px;
 
-padding: 20px !important;
+  padding: 20px !important;
 }
 
-.img-responsive-product{
+.img-responsive-product {
   width: 100%;
   height: 300px;
-
 }
 
-p img{
+p img {
   width: 100%;
   padding: 10px 15px;
   height: 100% !important;
@@ -249,64 +255,63 @@ p img{
 /* Preloder */
 
 #preloder {
-	position: fixed;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-	z-index: 999999;
-	background: #000;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 999999;
+  background: #000;
 }
 
 .loader {
-	width: 40px;
-	height: 40px;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin-top: -13px;
-	margin-left: -13px;
-	border-radius: 60px;
-	animation: loader 0.8s linear infinite;
-	-webkit-animation: loader 0.8s linear infinite;
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -13px;
+  margin-left: -13px;
+  border-radius: 60px;
+  animation: loader 0.8s linear infinite;
+  -webkit-animation: loader 0.8s linear infinite;
 }
 
 @keyframes loader {
-	0% {
-		transform: rotate(0deg);
-		border: 4px solid #f44336;
-		border-left-color: transparent;
-	}
-	50% {
-		transform: rotate(180deg);
-		border: 4px solid #673ab7;
-		border-left-color: transparent;
-	}
-	100% {
-		transform: rotate(360deg);
-		border: 4px solid #f44336;
-		border-left-color: transparent;
-	}
+  0% {
+    transform: rotate(0deg);
+    border: 4px solid #f44336;
+    border-left-color: transparent;
+  }
+  50% {
+    transform: rotate(180deg);
+    border: 4px solid #673ab7;
+    border-left-color: transparent;
+  }
+  100% {
+    transform: rotate(360deg);
+    border: 4px solid #f44336;
+    border-left-color: transparent;
+  }
 }
 
 @-webkit-keyframes loader {
-	0% {
-		-webkit-transform: rotate(0deg);
-		border: 4px solid #f44336;
-		border-left-color: transparent;
-	}
-	50% {
-		-webkit-transform: rotate(180deg);
-		border: 4px solid #673ab7;
-		border-left-color: transparent;
-	}
-	100% {
-		-webkit-transform: rotate(360deg);
-		border: 4px solid #f44336;
-		border-left-color: transparent;
-	}
+  0% {
+    -webkit-transform: rotate(0deg);
+    border: 4px solid #f44336;
+    border-left-color: transparent;
+  }
+  50% {
+    -webkit-transform: rotate(180deg);
+    border: 4px solid #673ab7;
+    border-left-color: transparent;
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    border: 4px solid #f44336;
+    border-left-color: transparent;
+  }
 }
-
 
 .bg-shadow {
   background-color: #fff;
@@ -521,11 +526,10 @@ p img{
   font-size: 14px;
 }
 
-
-.product-chart{
+.product-chart {
   width: 100%;
   height: 100%;
-  padding: 10px ;
+  padding: 10px;
 }
 .dropdown-slide {
   position: static;
@@ -542,7 +546,7 @@ p img{
 .dropdown-slide.full-width .dropdown-menu {
   left: 0 !important;
   right: 0 !important;
-background: #000;
+  background: #000;
 }
 
 .dropdown-slide:hover .dropdown-menu {
@@ -571,7 +575,7 @@ background: #000;
   visibility: hidden;
   opacity: 0;
   z-index: 100000;
-  
+
   background: #000000;
   transform: translateY(30px);
   transition: visibility 0.2s, opacity 0.2s,
@@ -592,7 +596,8 @@ background: #000;
 
 .commonSelect:before {
   content: "\f3d0";
-  font-family:'Bai Jamjuree', sans-serif ;
+  /* font-family: "Bai Jamjuree", sans-serif; */
+  font-family: "SF-Pro";
   position: absolute;
   right: -4px;
   top: 4px;
@@ -737,13 +742,11 @@ background: #000;
   text-align: center;
   color: #fff;
   position: relative;
-
 }
 .top-header {
   width: 100%;
   background: var(--black);
   color: var(--white);
-  
 }
 
 .top-header .container {
@@ -752,9 +755,6 @@ background: #000;
   border-bottom: 1px solid #dedede;
   background: var(--black);
   color: var(--white);
-
-  
-
 }
 
 .top-header .dropdown-menu {
@@ -827,7 +827,7 @@ background: #000;
 
 @media (max-width: 768px) {
   .top-header .logo {
-    padding: 5px  !important;
+    padding: 5px !important;
   }
 }
 
@@ -908,13 +908,11 @@ background: #000;
 }
 
 .navigation .menu-title {
-
   font-size: 16px;
   width: 60px;
   height: 60px;
 }
-.navigation .menu-title img{
-
+.navigation .menu-title img {
   width: 60px;
   height: 60px;
 }
@@ -1077,7 +1075,6 @@ background: #000;
   height: 100%;
   width: 100%;
   min-height: 400px !important;
-
 }
 
 .product-item .product-thumb {
@@ -1175,11 +1172,11 @@ background: #000;
   color: #000;
 }
 
-span.colored-jane{
+span.colored-jane {
   color: var(--jane);
 }
 
-.color-jane{
+.color-jane {
   color: var(--jane) !important;
   text-decoration: none;
 }
@@ -1500,24 +1497,20 @@ span.colored-jane{
   border: 1px solid #000;
 }
 .single-product-details .color-swatches .swatch-pink {
-  background-color: #FFC0CB;
-
+  background-color: #ffc0cb;
 }
 .single-product-details .color-swatches .swatch-red {
   background-color: #ff0000;
-
 }
 
 .single-product-details .color-swatches .swatch-green {
   background-color: #00ff00;
-
 }
 .single-product-details .color-swatches .swatch-brown {
-  background-color: #8B4513;
-
+  background-color: #8b4513;
 }
 
-.whatsapp{
+.whatsapp {
   width: 40px;
   height: 40px;
   position: fixed;
@@ -1525,7 +1518,7 @@ span.colored-jane{
   right: 50px;
   z-index: 1000;
 }
-.whatsapp img{
+.whatsapp img {
   width: 100%;
   height: 100%;
 }
@@ -1833,7 +1826,7 @@ span.colored-jane{
   height: auto;
 }
 
-.header_img{
+.header_img {
   width: 50px;
   height: 50px;
   display: flex;
@@ -2089,7 +2082,7 @@ span.colored-jane{
   margin-top: 35px;
 }
 
-.section > *{
+.section > * {
   z-index: 10 !important;
   position: relative;
 }
@@ -2231,7 +2224,8 @@ span.colored-jane{
 .widget.widget-category ul li a:before {
   padding-right: 10px;
   content: "\f3d1";
-  font-family: 'Bai Jamjuree', sans-serif ;
+  /* font-family: "Bai Jamjuree", sans-serif; */
+  font-family: "SF-Pro";
 }
 
 .widget.widget-category ul li a:hover {
@@ -2278,10 +2272,9 @@ span.colored-jane{
   z-index: 10;
 }
 
-
-.test-bg::after{
+.test-bg::after {
   position: absolute;
-  content: '';
+  content: "";
   background: rgba(0, 0, 0, 0.3);
   top: 0;
   right: 0;
@@ -2476,7 +2469,7 @@ span.colored-jane{
   -moz-appearance: none;
   -webkit-appearance: none;
   height: 50px;
-  border: 1px solid var(--black)!important;
+  border: 1px solid var(--black) !important;
   transition: all 0.4s ease-in !important;
 }
 
@@ -2703,7 +2696,8 @@ span.colored-jane{
   height: 45px !important;
   color: #0c0c0c;
   height: 38px;
-  font-family: 'Bai Jamjuree', sans-serif ;
+  /* font-family: "Bai Jamjuree", sans-serif; */
+  font-family: "SF-Pro";
   font-size: 14px;
   border-radius: 0;
 }
@@ -2844,7 +2838,6 @@ span.colored-jane{
 .social-media li {
   display: inline-block;
   margin: 0 5px;
-  
 }
 
 .social-media li a {

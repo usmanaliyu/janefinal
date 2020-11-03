@@ -20,11 +20,17 @@
   z-index: 999999;
 }
 
+@font-face {
+  src: url("./SFProText-Medium.ttf");
+  font-family: "SF-Pro";
+}
+
 .hero-area h1 {
   font-size: 100px;
   font-weight: 700;
   margin-bottom: 15px;
-  font-family: 'Open Sans', sans-serif;
+  /* font-family: 'Open Sans', sans-serif; */
+  font-family: "SF-Pro";
 }
 
 .hero-area p {
@@ -71,7 +77,7 @@
 
 .template-item a img {
   border-radius: 5px;
-  transition: .3s all;
+  transition: 0.3s all;
 }
 
 .template-item h4 {
@@ -173,7 +179,7 @@
     opacity: 1;
   }
   50% {
-    opacity: .5;
+    opacity: 0.5;
   }
   100% {
     opacity: 1;
@@ -217,7 +223,7 @@ footer a:hover {
 }
 
 .overly:before {
-  content: '';
+  content: "";
   background: rgba(0, 0, 0, 0.51);
   position: absolute;
   top: 0;
