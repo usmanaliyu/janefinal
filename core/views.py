@@ -305,14 +305,14 @@ class CheckoutView(View):
                             state=shipping_state,
                             zip=shipping_zip,
                             address_type='S'
-                            
+
                         )
                         coupon = Coupon(
-                            code = shipping_state,
-                            amount = 1000
+                            code=shipping_state,
+                            amount=1000
                         )
                         coupon.save()
-                        
+
                         shipping_address.save()
 
                         order.shipping_address = shipping_address
@@ -782,6 +782,8 @@ class AddCouponView(View):
             except ObjectDoesNotExist:
                 messages.info(self.request, "You do not have an active order")
                 return redirect("core:checkout")
+
+
 def get_coupon(request, code):
     try:
         coupon = Coupon.objects.get(code=code)
