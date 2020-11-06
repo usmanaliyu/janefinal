@@ -45,6 +45,7 @@ urlpatterns = [
          views.CategoryView, name='categoryview'),
     path('returns/', views.ReturnView.as_view(), name='returns'),
     path('add-coupon/', views.AddCouponView.as_view(), name='add-coupon'),
+    path('email/', views.EmailView.as_view(), name='email'),
 
 
 

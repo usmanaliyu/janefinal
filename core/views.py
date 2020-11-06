@@ -510,6 +510,10 @@ class ForgotView(TemplateView):
     template_name = 'forget-password.html'
 
 
+class EmailView(TemplateView):
+    template_name = 'email.html'
+
+
 class ConfirmView(TemplateView):
     template_name = 'confirmation.html'
 
