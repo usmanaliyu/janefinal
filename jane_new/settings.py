@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     "blog",
     "sorl.thumbnail",
     'django_filters',
-    "taggit"
+    "taggit",
+    'django_inlinecss'
 
 ]
 

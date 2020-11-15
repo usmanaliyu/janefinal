@@ -69,13 +69,12 @@
 
                         </div>
                         <div class="form-group">
-                           <label for="shipping_state" class="">State</label>
-                           <input type='text' placeholder='Your State' id='shipping_state' name='shipping_state'
-                              class='form-control' />
+                           {{ form.shipping_state }}
                         </div>
                      </div>
 
                      <div class="form-group">
+                        
 
                         {{ form.shipping_country }}
                      </div>
@@ -185,24 +184,27 @@
             <div class="product-checkout-details">
                <div class="block">
                   <h4 class="widget-title">Order Summary</h4>
-                  {% for order_item in order.items.all %}
-                  <div class="media product-card">
-                     <a class="pull-left">
-
-                     </a>
-                     <div class="media-body">
-                        <h4 class="media-heading"><a
-                              href="{{order_item.item.get_absolute_url}}">{{ order_item.item.title|title}}</a></h4>
-                        <p class="price">{{ order_item.quantity }} x &#8358; {{ order_item.item.price|intcomma}}</p>
-                        <a href="{{order_item.item.get_remove_from_cart_url}}" class="remove">Remove</a>
-                     </div>
-                  </div>
-                  {% endfor %}
+                  
                   <ul class="summary-prices">
+
+
                      <li>
-                        <span>Subtotal:</span>
-                        <span class="price">&#8358; {{ order.get_total|intcomma }}</span>
+
+                        {% for order_item in order.items.all %}
+                  
+                     
+
+                    
+                        <span>{{ order_item.item.title|title}}</span>
+                        <span class="price">{{ order_item.quantity }} x &#8358; {{ order_item.item.price|intcomma}}</span>
+                        
+                        <a href="{{order_item.item.get_remove_from_cart_url}}" class="remove">Remove</a>
                      </li>
+                     
+                  {% endfor %}
+                     
+
+                     
                      <li>
                         <!-- <span>Shipping:</span>
 

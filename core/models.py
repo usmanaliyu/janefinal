@@ -235,7 +235,7 @@ class Address(models.Model):
     apartment_address = models.CharField(
         max_length=100, blank=False, null=True)
     country = CountryField(multiple=False, blank=False, null=True)
-    zip = models.CharField(max_length=100, blank=False)
+    zip = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=False, null=True)
     state = models.CharField(max_length=120, blank=False, null=True)
     address_type = models.CharField(

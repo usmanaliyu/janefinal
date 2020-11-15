@@ -18,11 +18,18 @@ PAYMENT_CHOICES = (
     ('P', 'Paystack')
 )
 
+STATE_CHOICES = (
+    ('sokoto','sokoto'),
+    ('lagos','lagos')
+)
+
 class CheckoutForm(forms.Form):
     shipping_address = forms.CharField(required=False)
     shipping_address2 = forms.CharField(required=False)
     shipping_phone = forms.CharField(required=False)
-    shipping_state = forms.CharField(required=False)
+    shipping_state = forms.ChoiceField(choices = STATE_CHOICES, required=False, widget=CountrySelectWidget(attrs={
+            'class': 'custom-select d-block w-100 form-control',
+        }))
     shipping_country = CountryField(blank_label='Select Country').formfield(
         required=False,
         widget=CountrySelectWidget(attrs={
