@@ -16,13 +16,14 @@ from .models import (
     ShopbottomBanner,
     Reviews,
     Contact,
-    Slider, 
+    Slider,
     Author,
     Wishlist,
     Newsletter,
     About,
-     CustomUser,
-     Team
+    CustomUser,
+    Team,
+    RecentlyViewed
 
 )
 
@@ -34,17 +35,16 @@ def make_refund_accepted(modeladmin, request, queryset):
 make_refund_accepted.short_description = 'Update orders to refund granted'
 
 
-
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['user',
-                    'order_id',
+
                     'ordered',
                     'being_delivered',
                     'received',
                     'refund_requested',
                     'refund_granted',
                     'shipping_address',
-                    'billing_address',
+
                     'payment',
                     'coupon',
 
@@ -52,7 +52,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display_links = [
         'user',
         'shipping_address',
-        'billing_address',
+
         'payment',
         'coupon'
     ]
@@ -67,19 +67,18 @@ class OrderAdmin(admin.ModelAdmin):
     ]
     actions = [make_refund_accepted]
 
+
 class AddressAdmin(admin.ModelAdmin):
     list_display = [
         'user',
-        'street_address',
-        'apartment_address',
+        'address',
         'country',
         'zip',
-        'address_type',
+
         'default'
     ]
-    list_filter = ['default', 'address_type', 'country']
-    search_fields = ['user', 'street_address', 'apartment_address', 'zip']
-
+    list_filter = ['default',  'country']
+    search_fields = ['user', 'address', 'zip']
 
 
 class ItemAdmin(admin.ModelAdmin):
@@ -93,7 +92,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = [
         'user',
-        'order_id',
+
         'quantity',
         'item',
 
@@ -131,6 +130,7 @@ admin.site.register(Newsletter)
 admin.site.register(About)
 admin.site.register(CustomUser)
 admin.site.register(Team)
+admin.site.register(RecentlyViewed)
 
 admin.site.site_header = "Jane's Admin"
 admin.site.site_text = "Jane's Admin Portal"

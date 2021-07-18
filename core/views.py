@@ -1,797 +1,640 @@
-from django.conf import settings
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import TemplateView, ListView, DetailView, View
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from .forms import ReviewForm, CheckoutForm, RefundForm, CouponForm, ContactForm, NewsletterForm
-from django.utils import timezone
-from django.urls import reverse_lazy, reverse
-from .filters import ItemFilter
-from django.core.paginator import Paginator
-from django.template.loader import render_to_string
+from django.contrib.auth.models import User
+from rest_framework import authtoken, request
+from rest_framework import status
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, DestroyAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.serializers import Serializer
+from rest_framework.views import APIView
+from .serializers import ContactSerializer, NewsletterSerializer, ItemSerializer, OrderItemSerializer, OrderSerializer, AddressSerializer, PaymentSerializer, ReviewsSerializer, UserInfo, WishlistSerializer
+from rest_framework.response import Response
 from django.core.mail import send_mail, EmailMessage
-
-from django.utils.decorators import method_decorator
-
-
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from rest_framework.authtoken.models import Token
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_405_METHOD_NOT_ALLOWED
+from django.core.exceptions import ObjectDoesNotExist
 from .models import (
-    Team,
-    Item,
-    Wishlist,
-    Reviews,
+    Address, Coupon, CustomUser, Item,
     OrderItem,
     Order,
-    Address,
-    Payment,
-    Coupon,
-    Refund,
-    UserProfile,
-    Category,
-    HomepageBanner,
-    HomesideBanner,
-    ShoptopBanner,
-    ShopbottomBanner,
-
     Contact,
-    Slider,
-    Newsletter,
-    About
+    Newsletter, Payment, RecentlyViewed, Reviews, Wishlist,
+
 )
-
-# Create your views here.
-
-
-class HomeView(ListView):
-    model = Item
-    context_object_name = 'product'
-    template_name = 'index.html'
-
-    def get_queryset(self):
-        qs = Item.objects.order_by('-pub_date')
-
-        return qs
-
-    def post(self, request, *args, **kwargs):
-        newsletter = NewsletterForm(self.request.POST)
-
-        if newsletter.is_valid():
-            email = newsletter.cleaned_data.get('email')
-            existing = Newsletter.objects.filter(email=email).count()
-
-            if existing == 0:
-                news = Newsletter(
-                    email=email
-                )
-                news.save()
-                messages.success(
-                    self.request, 'You have signup for the newsletter')
-                return redirect('core:home')
-            else:
-                messages.success(
-                    self.request, 'You have already used this email')
-                return redirect('core:home')
-        messages.error(self.request, 'You haven\'t for the newsletter')
-        return redirect('core:home')
-
-    def get_context_data(self, **kwargs):
-        context = super(HomeView, self).get_context_data(**kwargs)
-        context.update({
-            'newarrivals': Item.objects.filter(new_arrival=True)[:4],
-            'homepage': HomepageBanner.objects.order_by('-date')[:1],
-            'homeside': HomesideBanner.objects.order_by('-date')[:1],
-            "shopbottom": ShopbottomBanner.objects.order_by('-date')[:1],
-            'shoptop': ShoptopBanner.objects.order_by('-date')[:1],
-            'slider': Slider.objects.order_by('-date')[:3],
-            'newsletter': NewsletterForm(),
-            'category_list': Category.objects.all()
-        })
-        return context
-
-
-class ShopView(ListView):
-    model = Item
-    template_name = 'shop-sidebar.html'
-    context_object_name = 'category_list'
-    paginate_by = 18
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['filter'] = ItemFilter(
-            self.request.GET, queryset=self.get_queryset())
-        context.update({
-            'category_list': Category.objects.all()
-        })
-        return context
-
-    def get_queryset(self):
-        qs = Item.objects.order_by('-pub_date')
-        return qs
-
-    def post(self, request, *args, **kwargs):
-        newsletter = NewsletterForm(self.request.POST)
-
-        if newsletter.is_valid():
-            email = newsletter.cleaned_data.get('email')
-            existing = Newsletter.objects.filter(email=email).count()
-
-            if existing == 0:
-                news = Newsletter(
-                    email=email
-                )
-                news.save()
-                messages.success(
-                    self.request, 'You have signup for the newsletter')
-                return redirect('core:shop')
-            else:
-                messages.success(
-                    self.request, 'You have already used this email')
-                return redirect('core:shop')
-        messages.error(self.request, 'You haven\'t for the newsletter')
-        return redirect('core:shop')
-
-
-class AboutView(TemplateView):
-    template_name = 'about.html'
-
-    def post(self, request, *args, **kwargs):
-        newsletter = NewsletterForm(self.request.POST)
-
-        if newsletter.is_valid():
-            email = newsletter.cleaned_data.get('email')
-            existing = Newsletter.objects.filter(email=email).count()
-
-            if existing == 0:
-                news = Newsletter(
-                    email=email
-                )
-                news.save()
-                messages.success(
-                    self.request, 'You have signup for the newsletter')
-                return redirect('core:about')
-            else:
-                messages.success(
-                    self.request, 'You have already used this email')
-                return redirect('core:about')
-        messages.error(self.request, 'You haven\'t for the newsletter')
-        return redirect('core:about')
-
-    def get_context_data(self, **kwargs):
-        context = super(AboutView, self).get_context_data(**kwargs)
-        context.update({
-            'newsletter': NewsletterForm(),
-            'homeside': HomesideBanner.objects.order_by('-date')[:1],
-            'about': About.objects.order_by('-date')[:1],
-            'team': Team.objects.all(),
-            'category_list': Category.objects.all()
-
-        })
-        return context
-
-
-class DetailView(DetailView):
-    model = Item
-    context_object_name = 'product'
-    template_name = 'product-single.html'
-
-    def post(self, request, *args, **kwargs):
-        form = ReviewForm(self.request.POST)
-
-        if form.is_valid():
-            review = form.cleaned_data.get('review')
-            user = self.request.user
-            item = self.get_object()
-
-            review = Reviews(
-                user=user,
-                item=item,
-                review=review
-            )
-            review.save()
-            messages.success(
-                self.request, 'Yay, you are amazing for the review')
-            return redirect('core:details', slug=item.slug)
-        messages.error(self.request, 'Oh no, you didn\'t any review')
-        return redirect('core:details', slug=self.get_object().slug)
-
-    def get_object(self, **kwargs):
-        qs = super().get_object(**kwargs)
-        return qs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        trip = get_object_or_404(Item, slug=self.get_object().slug)
-        trip_related = trip.tags.similar_objects()[:4]
-        context.update({
-            'form': ReviewForm(),
-            "trip_related": trip_related,
-            'category_list': Category.objects.all()
-
-        })
-        return context
-
-
-def is_valid_form(values):
-    valid = True
-    for field in values:
-        if field == '':
-            valid = False
-    return valid
-
-
-class CheckoutView(View):
-    def get(self, *args, **kwargs):
-        try:
-            order = Order.objects.get(user=self.request.user, ordered=False)
-            category_list = Category.objects.all()
-            form = CheckoutForm()
-            context = {
-                'form': form,
-                'couponform': CouponForm(),
-                'order': order,
-                'DISPLAY_COUPON_FORM': True,
-                'category_list': category_list
-            }
-
-            shipping_address_qs = Address.objects.filter(
-                user=self.request.user,
-                address_type='S',
-                default=True
-            )
-            if shipping_address_qs.exists():
-                context.update(
-                    {'default_shipping_address': shipping_address_qs[0]})
-
-            billing_address_qs = Address.objects.filter(
-                user=self.request.user,
-                address_type='B',
-                default=True
-            )
-            if billing_address_qs.exists():
-                context.update(
-                    {'default_billing_address': billing_address_qs[0]})
-
-            return render(self.request, "checkout.html", context)
-        except ObjectDoesNotExist:
-            messages.info(self.request, "You do not have an active order")
-            return redirect("core:checkout")
-
-    def post(self, *args, **kwargs):
-
-        try:
-            order = Order.objects.get(user=self.request.user, ordered=False)
-            form = CheckoutForm(self.request.POST or None)
-            if form.is_valid():
-
-                use_default_shipping = form.cleaned_data.get(
-                    'use_default_shipping')
-                if use_default_shipping:
-                    print("Using the default shipping address")
-                    address_qs = Address.objects.filter(
-                        user=self.request.user,
-                        address_type='S',
-                        default=True
-                    )
-                    if address_qs.exists():
-                        shipping_address = address_qs[0]
-                        order.shipping_address = shipping_address
-                        order.save()
-                    else:
-                        messages.info(
-                            self.request, "No default shipping address available")
-                        return redirect('core:checkout')
-                else:
-                    print("User is entering a new shipping address")
-                    shipping_address1 = form.cleaned_data.get(
-                        'shipping_address')
-                    shipping_address2 = form.cleaned_data.get(
-                        'shipping_address2')
-                    shipping_phone = form.cleaned_data.get(
-                        'shipping_phone')
-                    shipping_state = form.cleaned_data.get(
-                        'shipping_state')
-                    shipping_country = form.cleaned_data.get(
-                        'shipping_country')
-                    shipping_zip = form.cleaned_data.get('shipping_zip')
-
-                    if is_valid_form([shipping_address1, shipping_country, shipping_zip]):
-                        shipping_address = Address(
-                            user=self.request.user,
-                            street_address=shipping_address1,
-                            apartment_address=shipping_address2,
-                            phone=shipping_phone,
-                            country=shipping_country,
-                            state=shipping_state,
-                            zip=shipping_zip,
-                            address_type='S'
-
-                        )
-                        coupon = Coupon(
-                            code=shipping_state,
-                            amount=1000
-                        )
-                        coupon.save()
-
-                        shipping_address.save()
-
-                        order.shipping_address = shipping_address
-                        order.coupon = coupon
-                        order.save()
-
-                        set_default_shipping = form.cleaned_data.get(
-                            'set_default_shipping')
-                        if set_default_shipping:
-                            shipping_address.default = True
-                            shipping_address.save()
-
-                    else:
-                        messages.info(
-                            self.request, "Please fill in the required shipping address fields")
-
-                use_default_billing = form.cleaned_data.get(
-                    'use_default_billing')
-                same_billing_address = form.cleaned_data.get(
-                    'same_billing_address')
-
-                if same_billing_address:
-                    billing_address = shipping_address
-                    billing_address.pk = None
-                    billing_address.save()
-                    billing_address.address_type = 'B'
-                    billing_address.save()
-                    order.billing_address = billing_address
-                    order.save()
-
-                elif use_default_billing:
-                    print("Using the default billing address")
-                    address_qs = Address.objects.filter(
-                        user=self.request.user,
-                        address_type='B',
-                        default=True
-                    )
-                    if address_qs.exists():
-                        billing_address = address_qs[0]
-                        order.billing_address = billing_address
-                        order.save()
-                    else:
-                        messages.info(
-                            self.request, "No default billing address available")
-                        return redirect('core:checkout')
-                else:
-                    print("User is entering a new billing address")
-                    billing_address1 = form.cleaned_data.get(
-                        'billing_address')
-                    billing_address2 = form.cleaned_data.get(
-                        'billing_address2')
-                    billing_phone = form.cleaned_data.get(
-                        'billing_phone')
-                    billing_state = form.cleaned_data.get(
-                        'billing_state')
-                    billing_country = form.cleaned_data.get(
-                        'billing_country')
-                    billing_zip = form.cleaned_data.get('billing_zip')
-
-                    if is_valid_form([billing_address1, billing_country, billing_zip]):
-                        billing_address = Address(
-                            user=self.request.user,
-                            street_address=billing_address1,
-                            apartment_address=billing_address2,
-                            country=billing_country,
-                            phone=billing_phone,
-                            state=billing_state,
-                            zip=billing_zip,
-                            address_type='B'
-                        )
-                        billing_address.save()
-
-                        order.billing_address = billing_address
-                        order.save()
-
-                        set_default_billing = form.cleaned_data.get(
-                            'set_default_billing')
-                        if set_default_billing:
-                            billing_address.default = True
-                            billing_address.save()
-
-                    else:
-                        messages.info(
-                            self.request, "Please fill in the required billing address fields")
-
-                return redirect('core:payment')
-            messages.error(self.request, 'You didn\'t enter any address')
-            return redirect('core:checkout')
-
-        except ObjectDoesNotExist:
-            messages.warning(self.request, "You do not have an active order")
-            return redirect("core:order-summary")
-
-
-class CartView(TemplateView):
-    template_name = 'cart.html'
-
-    def get(self, *args, **kwargs):
-        try:
-            shoptop = ShoptopBanner.objects.order_by('-date')[:2]
-            category_list = Category.objects.all()
-            order = Order.objects.get(user=self.request.user, ordered=False)
-            context = {
-                'object': order,
-                'category_list': category_list
-
-
-            }
-            return render(self.request, 'cart.html', context)
-        except ObjectDoesNotExist:
-            messages.warning(self.request, "You do not have an active order")
-            return redirect("/")
-
-
-class FaqView(TemplateView):
-    template_name = 'faq.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-
-            'category_list':  Category.objects.all()
-        })
-        return context
-
-
-class ContactView(TemplateView):
-    template_name = 'contact.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'form': ContactForm(),
-            'category_list':  Category.objects.all()
-        })
-        return context
-
-    def post(self, request, *args, **kwargs):
-        form = ContactForm(self.request.POST or None)
-
-        if form.is_valid():
-            name = form.cleaned_data.get('name')
-            email = form.cleaned_data.get('email')
-            subject = form.cleaned_data.get('subject')
-            message = form.cleaned_data.get('message')
-
-            contact = Contact(
-                name=name,
-                email=email,
-                subject=subject,
-                message=message
-
-            )
-            contact.save()
-            context = {
-                "name": name,
-                "subject": subject,
-                "message": message,
-                "email": email
-            }
-            template = render_to_string('contact_template.html', context)
-            mail = sale = EmailMessage(
-                'We have a new mail',
-                template,
-                "contact@janes-fashion.com",
-                ['contact@janes-fashion.com']
-
-            )
-            mail.fail_silently = False
-            mail.send()
-            return redirect('core:contact-success')
-
-
-class ContactSuccessView(TemplateView):
-    template_name = "contact-success.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-
-            'category_list':  Category.objects.all()
-        })
-        return context
-
-
-class LoginView(TemplateView):
-    template_name = 'login.html'
-
-
-class SignupView(TemplateView):
-    template_name = 'signin.html'
-
-
-class ForgotView(TemplateView):
-    template_name = 'forget-password.html'
-
-
-class EmailView(TemplateView):
-    template_name = 'email.html'
-
-
-class ConfirmView(TemplateView):
-    template_name = 'confirmation.html'
-
-
-class PaystackView(TemplateView):
-    template_name = "purchase-confirmation.html"
+from django.db.models import Q
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, EmailMessage
+# PAYSTACK_PUBLIC_KEY = "pk_live_3b7b32232d4485c95cdc0c50f83acda3b6f523b1"
+# PAYSTACK_SECRET_KEY = "sk_live_1c2a919aca68e2a4fb2369cd828972d801a29d80"
+
+PAYSTACK_PUBLIC_KEY = "pk_test_6681e7fc29d2350d6f35f98ae14535747f541783"
+PAYSTACK_SECRET_KEY = "sk_test_eb983647781b4cdca3ba3be945637e1585059f71"
+
+
+class PaystackkeyView(APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(PAYSTACK_PUBLIC_KEY, status=HTTP_200_OK)
+
+
+class UserEmailView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        token = Token.objects.get(user=user)
+        userExist = CustomUser.objects.get(auth_token=token)
+        if userExist:
+            email = userExist.email
+            return Response(email, status=HTTP_200_OK)
+
+
+class UserDetailsView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        token = Token.objects.get(user=user)
+        userExist = CustomUser.objects.get(auth_token=token)
+        serializer = UserInfo(userExist).data
+        return Response(serializer, status=HTTP_200_OK)
+
+
+class RelatedPostView(ListAPIView):
+    serializer_class = ItemSerializer
+    permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
-        order = Order.objects.get(user=self.request.user, ordered=False)
-
-        user = self.request.user
-
-        email = self.request.user.email
-        amount = order.get_total()
-
-        context = {
-            'order': order,
-            "email": email,
-            "amount": amount,
-            'category_list':  Category.objects.all()
-        }
-
-        if order.shipping_address or order.billing_address:
-            return render(self.request,  "purchase-confirmation.html", context)
-        else:
-            messages.error(self.request, "You have no billing address")
-            return redirect('core:checkout')
+        slug = request.query_params.get('slug', None)
+        print(slug)
+        if slug is None:
+            return Response({"message": "no related posts"}, status=HTTP_400_BAD_REQUEST)
+        item = get_object_or_404(Item, slug=slug)
+        tags = item.tags.similar_objects()[:3]
+        serializer = ItemSerializer(tags, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
-class OrderView(LoginRequiredMixin, TemplateView):
-    template_name = "order.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(OrderView, self).get_context_data(**kwargs)
-        context.update({
-            'order': Order.objects.filter(user=self.request.user, ordered=True),
-
-            'category_list':  Category.objects.all()
-        })
-        return context
+class PaymentView(APIView):
+    def post(self, request, *args, **kwargs):
+        return Response(status=HTTP_200_OK)
 
 
-class OrderDetailView(LoginRequiredMixin, DetailView):
-    queryset = Order.objects.all()
-    context_object_name = 'order'
-    template_name = "order_details.html"
+class FetchWishlistView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-
-            'category_list':  Category.objects.all()
-        })
-        return context
+    def get(self, request, *args, **kwargs):
+        saved = Wishlist.objects.filter(user=self.request.user)
+        serializer = WishlistSerializer(saved, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
-class DashboardView(LoginRequiredMixin, TemplateView):
-    template_name = "dashboard.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(DashboardView, self).get_context_data(**kwargs)
-        context.update({
-            'wishlist': Wishlist.objects.filter(user=self.request.user),
-            'category_list':  Category.objects.all()
-        })
-        return context
-
-
-def click(request):
-
-    return render(request, 'contact.html')
+class DeleteFromWishlistView(APIView):
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get("slug", None)
+        wishlist = get_object_or_404(Wishlist, item__slug=slug)
+        if wishlist:
+            wishlist.delete()
+        #      wish_qs = Wishlist.objects.filter(user=self.request.user, item=item)
+        # if wish_qs.exists():
+        #     wish_qs[0].delete()
+            return Response(status=HTTP_200_OK)
 
 
-# class PricingView(TemplateView):
-#     template_name =   "pricing.html"
-
-class AddressView(LoginRequiredMixin, TemplateView):
-    template_name = "address.html"
-
-    def get_context_data(self, **kwargs):
-        context = super(AddressView, self).get_context_data(**kwargs)
-        context.update({
-            'order': Order.objects.filter(user=self.request.user, ordered=True),
-            'category_list':  Category.objects.all()
-        })
-        return context
+class ListView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all().order_by('-pub_date')[:30]
 
 
-def handler404(request, exception):
-    return render(request, '404.html')
+class ShopListView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all().order_by('-pub_date')
 
 
-@login_required
-def wishlist_home(request, slug):
-    item = get_object_or_404(Item, slug=slug)
-    wish_qs = Wishlist.objects.filter(user=request.user, item=item)
-    if wish_qs.exists():
-        wish_qs[0].delete()
-        messages.error(request, "You have removed an item to your wishlist")
-        return redirect('core:home')
-    Wishlist.objects.create(user=request.user, item=item)
-    messages.success(request, "You have added an item to your wishlist")
-    return redirect('core:home')
+class SearchView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all().order_by('-pub_date')
+
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('query', None)
+        if query is None:
+            print(query)
+            return Response({"message": "No item in search"}, status=HTTP_200_OK)
+        items = Item.objects.all()
+        queryset = items.filter(Q(title__icontains=query)
+                                | Q(description__icontains=query))
+        serializer = ItemSerializer(queryset, many=True).data
+        return Response(serializer, status=HTTP_200_OK)
 
 
-@login_required
-def wishlist(request, slug):
-    item = get_object_or_404(Item, slug=slug)
-    wish_qs = Wishlist.objects.filter(user=request.user, item=item)
-    if wish_qs.exists():
-        wish_qs[0].delete()
-        messages.error(request, "You have removed an item to your wishlist")
-        return redirect('core:shop')
-    Wishlist.objects.create(user=request.user, item=item)
-    messages.success(request, "You have added an item to your wishlist")
-    return redirect('core:shop')
+class ShopFilterView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all().order_by('-pub_date')
 
 
-@login_required
-def wishlist_product(request, slug):
-    item = get_object_or_404(Item, slug=slug)
-    wish_qs = Wishlist.objects.filter(user=request.user, item=item)
-    if wish_qs.exists():
-        wish_qs[0].delete()
-        messages.error(request, "You have removed an item to your wishlist")
-        return redirect('core:details', slug=slug)
-    Wishlist.objects.create(user=request.user, item=item)
-    messages.success(request, "You have added an item to your wishlist")
-    return redirect('core:details', slug=slug)
+class ProductDetailsView(RetrieveAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ItemSerializer
+    queryset = Item.objects.all()
+    lookup_field = 'slug'
 
 
-@login_required
-def add_to_cart(request, slug):
-    item = get_object_or_404(Item, slug=slug)
-    order_item, created = OrderItem.objects.get_or_create(
-        item=item,
-        user=request.user,
-        ordered=False
-    )
-    order_qs = Order.objects.filter(user=request.user, ordered=False)
-    if order_qs.exists():
-        order = order_qs[0]
-        # check if the order item is in the order
-        if order.items.filter(item__slug=item.slug).exists():
-            order_item.quantity += 1
-            order_item.save()
-            messages.info(request, "This item quantity was updated.")
-            return redirect("core:cart")
-        else:
-            order.items.add(order_item)
-            messages.info(request, "This item was added to your cart.")
-            return redirect("core:cart")
-    else:
-        ordered_date = timezone.now()
-        order = Order.objects.create(
-            user=request.user, ordered_date=ordered_date)
-        order.items.add(order_item)
-        messages.info(request, "This item was added to your cart.")
-        return redirect("core:cart")
+class OrderDetailView(RetrieveAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        try:
+            order = Order.objects.get(user=self.request.user, ordered=False)
+            if order:
+                return order
+        except ObjectDoesNotExist:
+            return Response({"message": "You don't have an active order"}, status=HTTP_400_BAD_REQUEST)
+
+# class OrderDetailView(APIView):
+#     serializer_class = OrderSerializer
+#     permission_classes = (IsAuthenticated,)
+
+#     def get(self, request, *args, **kwargs):
+#         order = Order.objects.get(user=self.request.user, ordered=False)
+#         if order is None:
+#             return Response({"message": "You don't have an active order"}, status=HTTP_400_BAD_REQUEST)
+#         return Response(order, status=HTTP_200_OK)
 
 
-@login_required
-def remove_from_cart(request, slug):
-    item = get_object_or_404(Item, slug=slug)
-    order_qs = Order.objects.filter(
-        user=request.user,
-        ordered=False
-    )
-    if order_qs.exists():
-        order = order_qs[0]
-        # check if the order item is in the order
-        if order.items.filter(item__slug=item.slug).exists():
-            order_item = OrderItem.objects.filter(
-                item=item,
-                user=request.user,
-                ordered=False
-            )[0]
-            order.items.remove(order_item)
-            order_item.delete()
-            messages.info(request, "This item was removed from your cart.")
-            return redirect("core:cart")
-        else:
-            messages.info(request, "This item was not in your cart")
-            return redirect("core:details", slug=slug)
-    else:
-        messages.info(request, "You do not have an active order")
-        return redirect("core:details", slug=slug)
+class OrderItemDeleteView(APIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = OrderItem.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get("slug", None)
+        item = get_object_or_404(Item, slug=slug)
+        order_item = get_object_or_404(
+            OrderItem, item=item, user=self.request.user, ordered=False)
+        order = get_object_or_404(Order, user=self.request.user, ordered=False)
+        order.items.remove(order_item)
+        order_item.delete()
+        order.save()
+        return Response(status=HTTP_200_OK)
 
 
-@login_required
-def remove_single_item_from_cart(request, slug):
-    item = get_object_or_404(Item, slug=slug)
-    order_qs = Order.objects.filter(
-        user=request.user,
-        ordered=False
-    )
-    if order_qs.exists():
-        order = order_qs[0]
-        # check if the order item is in the order
-        if order.items.filter(item__slug=item.slug).exists():
-            order_item = OrderItem.objects.filter(
-                item=item,
-                user=request.user,
-                ordered=False
-            )[0]
-            if order_item.quantity > 1:
-                order_item.quantity -= 1
-                order_item.save()
+class OrderQuantityupdateView(APIView):
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        if slug is None:
+            return Response({"message": "invalid request"}, status=HTTP_400_BAD_REQUEST)
+        item = get_object_or_404(Item, slug=slug)
+        order_qs = Order.objects.filter(
+            user=self.request.user,
+            ordered=False
+        )
+        if order_qs.exists():
+            order = order_qs[0]
+            # check if the order item is in the order
+            if order.items.filter(item__slug=item.slug).exists():
+                order_item = OrderItem.objects.filter(
+                    item=item,
+                    user=self.request.user,
+                    ordered=False
+                )[0]
+                if order_item.quantity > 1:
+                    order_item.quantity -= 1
+                    order_item.save()
+                    return Response({"message": "This item quantity was updated"}, status=HTTP_200_OK)
+                else:
+                    order.items.remove(order_item)
+
+                    return Response({"message": "This item quantity was updated"}, status=HTTP_200_OK)
             else:
-                order.items.remove(order_item)
-            messages.info(request, "This item quantity was updated.")
-            return redirect("core:cart")
+                return Response({"message": "This item was not in your cart"}, status=HTTP_400_BAD_REQUEST)
         else:
-            messages.info(request, "This item was not in your cart")
-            return redirect("core:details", slug=slug)
-    else:
-        messages.info(request, "You do not have an active order")
-        return redirect("core:details", slug=slug)
+            return Response({"message": "You do not have an active order"}, status=HTTP_400_BAD_REQUEST)
 
 
-def CategoryView(request, slug):
-    instance = Item.objects.all()
-    categories = Category.objects.all()
-
-    if slug:
-        category = get_object_or_404(Category, slug=slug)
-        instance_list = instance.filter(category=category)
-        paginator = Paginator(instance_list, 12)
-        page = request.GET.get('page')
-        instance = paginator.get_page(page)
-        shoptop = ShoptopBanner.objects.order_by('-date')[:4]
-        shopside = ShopbottomBanner.objects.order_by('-date')[:2]
-        category_list = Category.objects.all()
-    content = {
-        'categories': categories,
-        'instance': instance,
-        'category': category,
-        "shoptop": shoptop,
-        "shopside": shopside,
-        'category_list': category_list
-
-
-    }
-    return render(request, 'categoryview.html', content)
-
-
-class ReturnView(TemplateView):
-    template_name = 'returns.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(AddressView, self).get_context_data(**kwargs)
-        context.update({
-            'category_list':  Category.objects.all()
-        })
-        return context
+class AddToCartView(APIView):
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        if slug is None:
+            return Response({"message": "slug is none"}, status=HTTP_400_BAD_REQUEST)
+        item = get_object_or_404(Item, slug=slug)
+        order_item, created = OrderItem.objects.get_or_create(
+            item=item,
+            user=request.user,
+            ordered=False
+        )
+        order_qs = Order.objects.filter(user=request.user, ordered=False)
+        if order_qs.exists():
+            order = order_qs[0]
+            # check if the order item is in the order
+            if order.items.filter(item__slug=item.slug).exists():
+                order_item.quantity += 1
+                order_item.save()
+                return Response(status=HTTP_200_OK)
+            else:
+                order.items.add(order_item)
+                return Response(status=HTTP_200_OK)
+        else:
+            ordered_date = timezone.now()
+            order = Order.objects.create(
+                user=request.user, ordered_date=ordered_date)
+            order.items.add(order_item)
+            order.save()
+            return Response(status=HTTP_200_OK)
 
 
-class AddCouponView(View):
-    def post(self, *args, **kwargs):
-        form = CouponForm(self.request.POST or None)
-        if form.is_valid():
-            try:
-                code = form.cleaned_data.get('code')
-                order = Order.objects.get(
-                    user=self.request.user, ordered=False)
-                order.coupon = get_coupon(self.request, code)
-                order.save()
-                messages.success(self.request, "Successfully added coupon")
-                return redirect("core:checkout")
-            except ObjectDoesNotExist:
-                messages.info(self.request, "You do not have an active order")
-                return redirect("core:checkout")
+class AddToWishListView(APIView):
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        item = get_object_or_404(Item, slug=slug)
+        wish_qs = Wishlist.objects.filter(user=self.request.user, item=item)
+        if wish_qs.exists():
+            wish_qs[0].delete()
+            return Response({"message": "You have removed an item to your wishlist"}, status=HTTP_400_BAD_REQUEST)
+        Wishlist.objects.create(user=request.user, item=item)
+        return Response({"message": "You have added an item to your wishlist"}, status=HTTP_200_OK)
 
 
-def get_coupon(request, code):
-    try:
-        coupon = Coupon.objects.get(code=code)
-        return coupon
-    except ObjectDoesNotExist:
-        messages.info(request, "This coupon does not exist")
-        return redirect("core:checkout")
+class CheckWishlistView(APIView):
+    def get(self, request, *args, **kwargs):
+        slug = request.query_params.get('slug', None)
+        item = get_object_or_404(Item, slug=slug)
+        wish_qs = Wishlist.objects.filter(user=self.request.user, item=item)
+        if wish_qs.exists():
+            return Response({"message": "You have this in your wishlist"}, status=HTTP_200_OK)
+        return Response({"message": "You don't have this item in your wishlist"}, status=HTTP_400_BAD_REQUEST)
+
+
+class CheckOrderDetailsView(RetrieveAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        id = request.query_params.get('id', None)
+        order = Order.objects.get(user=self.request.user, ordered=True, id=id)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+
+class CheckOrderItemDetailsView(RetrieveAPIView):
+    serializer_class = OrderSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        id = request.query_params.get('id', None)
+        order = Order.objects.get(user=self.request.user, ordered=True, id=id)
+        order_items = order.items.all()
+        print(order_items)
+        serializer = OrderItemSerializer(order_items, many=True).data
+        return Response(serializer, status=HTTP_200_OK)
+
+
+class CheckReviewsView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        slug = request.query_params.get('slug', None)
+        item = get_object_or_404(Item, slug=slug)
+        reviews_qs = Reviews.objects.filter(item=item)
+        if reviews_qs.exists():
+            serializer = ReviewsSerializer(reviews_qs, many=True)
+            return Response(serializer.data)
+        return Response({"message": "No review"}, status=HTTP_400_BAD_REQUEST)
+
+
+class CheckTagsView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        slug = request.query_params.get('slug', None)
+        if slug is None:
+            return Response({"message": "No tag"}, status=HTTP_400_BAD_REQUEST)
+        item = get_object_or_404(Item, slug=slug)
+        tags = item.tags.similar_objects()[:3]
+        serializer = ItemSerializer(tags, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+
+class AddCouponView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        code = request.data.get('code', None)
+        if code is None:
+            return Response({"message": "No coupon added"}, status=HTTP_400_BAD_REQUEST)
+        try:
+            coupon = get_object_or_404(Coupon, code=code)
+            order = Order.objects.get(user=request.user, ordered=False)
+            if order.coupon:
+                return Response({"message": "coupon already exist in this order"}, status=HTTP_400_BAD_REQUEST)
+            order.coupon = coupon
+            order.save()
+            return Response({"message": "Coupon added"}, status=HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({"message": "Coupon does not exist"},
+                            status=HTTP_400_BAD_REQUEST)
+
+
+class ShippingFeeVIew(APIView):
+    def get(self, request, *args, **kwargs):
+        state = request.query_params.get('region', None)
+        country = request.query_params.get('country', None)
+        shipping_fee = int(2000)
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        if order.get_order_total() >= int(10000):
+            shipping_fee = int(0)
+            return Response({"shipping_fee": shipping_fee, "state": state}, status=HTTP_200_OK)
+        else:
+            if country == "Nigeria":
+                if state == "Abuja Federal Capital Territory":
+                    shipping_fee = int(0)
+                    print(state)
+                    return Response({"shipping_fee": shipping_fee, "state": state}, status=HTTP_200_OK)
+                else:
+                    print(state)
+                    shipping_fee = int(2000)
+                    return Response({"shipping_fee": shipping_fee, "state": state}, status=HTTP_200_OK)
+            print(state)
+            return Response(status=HTTP_200_OK)
+
+
+class AddShippingFeeView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        shipping = request.data.get('shippingFee', None)
+
+        print(shipping)
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        if order.shipping_fee:
+            order.shipping_fee = float(shipping)
+            order.order_price = order.get_order_total()
+            order.order_final_price = order.get_order_final_total()
+            order.save()
+            return Response(status=HTTP_200_OK)
+        order.order_price = order.get_order_total()
+        order.order_final_price = order.get_order_final_total()
+        order.shipping_fee = float(shipping)
+        order.save()
+        return Response(status=HTTP_200_OK)
+
+
+class DeleteAddressView(APIView):
+    def post(self, request, *args, **kwargs):
+        id = request.data.get('id', None)
+        print(id)
+        address = Address.objects.filter(id=id, user=self.request.user)
+        if address.exists():
+            address.delete()
+            return Response(status=HTTP_200_OK)
+        return Response(status=HTTP_200_OK)
+
+
+class DefaultShippingFeeVIew(APIView):
+    def get(self, request, *args, **kwargs):
+        state = request.query_params.get('defaultState', None)
+        country = request.query_params.get('defaultCountry', None)
+        shipping_fee = int(2000)
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        if order.get_order_total() >= int(10000):
+            shipping_fee = int(0)
+            return Response({"shipping_fee": shipping_fee, "state": state}, status=HTTP_200_OK)
+        else:
+            if country == "Nigeria":
+                if state == "Abuja Federal Capital Territory":
+                    shipping_fee = int(0)
+                    print(state)
+                    return Response({"shipping_fee": shipping_fee, "state": state}, status=HTTP_200_OK)
+                else:
+                    print(state)
+                    shipping_fee = int(2000)
+                    return Response({"shipping_fee": shipping_fee, "state": state}, status=HTTP_200_OK)
+            print(state)
+            return Response(status=HTTP_200_OK)
+
+
+class AddDefaultShippingFeeView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        shipping = request.data.get('shippingFee', None)
+
+        print(shipping)
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        if order.shipping_fee:
+            order.shipping_fee = float(shipping)
+            order.order_price = order.get_order_total()
+            order.order_final_price = order.get_order_final_total()
+            order.save()
+            return Response(status=HTTP_200_OK)
+        order.order_price = order.get_order_total()
+        order.order_final_price = order.get_order_final_total()
+        order.shipping_fee = float(shipping)
+        order.save()
+        return Response(status=HTTP_200_OK)
+
+
+class CreateReviewView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        slug = request.data.get('slug', None)
+        review = request.data.get('comment', None)
+        rating = request.data.get('rating', None)
+        item = get_object_or_404(Item, slug=slug)
+
+        reviews = Reviews(
+            user=self.request.user,
+            item=item,
+            review=review,
+            rating=rating
+
+        )
+        reviews.save()
+        return Response({"message": "You are amazing, review successful"}, status=HTTP_201_CREATED)
+
+
+class NewsletterView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = NewsletterSerializer
+
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email", None)
+        existing = Newsletter.objects.filter(email=email).count()
+
+        if existing == 0:
+            news = Newsletter(
+                email=email
+            )
+            news.save()
+            return Response({"message": "You have signed up for the newsletter"}, status=HTTP_201_CREATED)
+        else:
+            return Response({"message": "You have already used this email"}, status=HTTP_400_BAD_REQUEST)
+
+
+class ContactView(CreateAPIView):
+    queryset = Contact
+    serializer_class = ContactSerializer
+    permission_classes = (AllowAny,)
+
+    def perform_create(self, serializer):
+        serializer.save()
+        user_data = serializer.data
+        name = user_data['name']
+        email = user_data['email']
+        subject = user_data['subject']
+        message = user_data['message']
+
+        contact = Contact(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message
+
+        )
+        contact.save()
+        context = {
+            "name": name,
+            "subject": subject,
+            "message": message,
+            "email": email
+        }
+        template = render_to_string('contact_template.html', context)
+        mail = EmailMessage(
+            'We have a new Contact mail',
+            template,
+            "contact@janes-fashion.com",
+            ['contact@janes-fashion.com']
+
+        )
+        mail.fail_silently = False
+        mail.send()
+
+
+class AddressCreateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        phone = request.data.get("phone", None)
+        country = request.data.get("country", None)
+        state = request.data.get("shipState", None)
+        address_text = request.data.get("address", None)
+        zip = request.data.get("zip", None)
+        default = request.data.get("defaultChecked", None)
+        if default:
+            for address in Address.objects.filter(user=self.request.user, default=True):
+                address.default = False
+                address.save()
+            address = Address(
+                user=self.request.user,
+                phone=phone,
+                country=country,
+                state=state,
+                address=address_text,
+                zip=zip,
+                default=True
+            )
+            address.save()
+            order = Order.objects.get(user=request.user, ordered=False)
+            order.shipping_address = address
+            order.save()
+            return Response(status=HTTP_200_OK)
+
+        else:
+            address = Address(
+                user=self.request.user,
+                phone=phone,
+                country=country,
+                state=state,
+                zip=zip,
+                default=False
+            )
+            address.save()
+            order = Order.objects.get(user=request.user, ordered=False)
+            order.address = address
+            # order.save()
+            return Response(status=HTTP_200_OK)
+
+
+class AddressDefaultCreateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        addDefaultAddress = request.data.get("addDefaultAddress", None)
+        address = get_object_or_404(Address, user=request.user, default=True)
+        order = Order.objects.get(user=request.user, ordered=False)
+        order.shipping_address = address
+        order.save()
+        return Response(status=HTTP_200_OK)
+
+
+class PaymentCheckView(ListAPIView):
+    serializer_class = PaymentSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Payment.objects.filter(user=self.request.user)
+
+
+class PaymentCreateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        reference = request.data.get("ref", None)
+        amount = request.data.get("amount", None)
+        order = Order.objects.get(user=request.user, ordered=False)
+        payment = Payment(
+            user=self.request.user,
+            reference=reference,
+            amount=amount
+        )
+        payment.save()
+        order.payment_reference = reference
+        order.payment = payment
+        order_items = order.items.all()
+        order_items.update(ordered=True)
+        for item in order_items:
+            item.save()
+        order.ordered = True
+        order.save()
+        return Response(status=HTTP_200_OK)
+
+
+class AddressListView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AddressSerializer
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user).order_by("-date")
+
+
+class DefaultAddressListView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AddressSerializer
+
+    def get_queryset(self):
+        return Address.objects.filter(user=self.request.user, default=True)
+
+
+class OrderedItemsView(ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user, ordered=True).order_by("-ordered_date")
+
+
+class RecentView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        slug = request.data.get("slug", None)
+        if slug is None:
+            return Response(status=HTTP_400_BAD_REQUEST)
+        item = get_object_or_404(Item, slug=slug)
+        viewed = RecentlyViewed.objects.filter(
+            user=self.request.user, item=item)
+        if viewed.exists():
+            return Response(status=HTTP_400_BAD_REQUEST)
+        RecentlyViewed.objects.create(user=self.request.user, item=item)
+        return Response({"message": "You have added an item to your wishlist"}, status=HTTP_200_OK)

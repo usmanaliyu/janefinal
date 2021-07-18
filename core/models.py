@@ -1,12 +1,11 @@
+from django.db.models.fields.related import ForeignKey
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.db import models
 from django.db.models import Sum
 from django.shortcuts import reverse
-from django_countries.fields import CountryField
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
-from django.contrib.auth.models import AbstractUser, AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 from taggit.managers import TaggableManager
 from ckeditor.fields import RichTextField
 
@@ -34,11 +33,6 @@ COLOR = (
 
 
 
-)
-
-ADDRESS_CHOICES = (
-    ('B', 'Billing'),
-    ('S', 'Shipping'),
 )
 
 
@@ -85,7 +79,7 @@ class Item(models.Model):
     new_arrival = models.BooleanField(default=False, blank=True, null=True)
     discount_price = models.FloatField(blank=True, null=True)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, default=1,)
+        Category, on_delete=models.CASCADE)
     color = models.CharField(
         choices=COLOR, max_length=1000, blank=True,  null=True)
     label = models.CharField(choices=FEATURE_CHOICES, max_length=1000)
@@ -106,60 +100,23 @@ class Item(models.Model):
     class Meta:
         unique_together = ['title', 'slug']
 
-    def get_absolute_url(self):
-        return reverse("core:details", kwargs={
-            'slug': self.slug
-        })
-
-    def get_add_to_cart_url(self):
-        return reverse("core:add-to-cart", kwargs={
-            'slug': self.slug
-        })
-
-    def get_remove_from_cart_url(self):
-        return reverse("core:remove-from-cart", kwargs={
-            'slug': self.slug
-        })
-
-    def get_remove_single_from_cart_url(self):
-        return reverse("core:remove-single-item-from-cart", kwargs={
-            'slug': self.slug
-        })
-
-    def get_wishlist_home(self):
-        return reverse('core:wishlist-home', kwargs={
-            "slug": self.slug
-        })
-
-    def get_wishlist_shop(self):
-        return reverse('core:wishlist', kwargs={
-            "slug": self.slug
-        })
-
-    def get_wishlist_product(self):
-        return reverse('core:wishlist-product', kwargs={
-            "slug": self.slug
-        })
+    def get_percentage(self):
+        if self.discount_price:
+            percent = self.discount_price - self.price
+            return percent / 100
 
     @property
-    def get_review_count(self):
+    def get_reviews_count(self):
         return self.reviews_set.all().count()
 
     @property
     def get_reviews(self):
         return self.reviews_set.all()
 
-    @property
-    def get_content_type(self):
-        instance = self
-        content_type = ContentType.objects.get_for_model(instance.__class__)
-        return content_type
-
 
 class OrderItem(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
-    order_id = models.AutoField(primary_key=True)
     ordered = models.BooleanField(default=False)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)
@@ -185,17 +142,17 @@ class OrderItem(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
-    order_id = models.AutoField(primary_key=True)
     ref_code = models.CharField(max_length=20, blank=True, null=True)
     items = models.ManyToManyField(OrderItem)
     start_date = models.DateTimeField(auto_now_add=True)
     ordered_date = models.DateTimeField()
     ordered = models.BooleanField(default=False)
+    order_price = models.CharField(max_length=200, blank=True, null=True)
+    order_final_price = models.CharField(max_length=200, blank=True, null=True)
     shipping_address = models.ForeignKey(
         'Address', related_name='shipping_address', on_delete=models.SET_NULL, blank=True, null=True)
-    state = models.CharField(blank=False, max_length = 200)
-    billing_address = models.ForeignKey(
-        'Address', related_name='billing_address', on_delete=models.SET_NULL, blank=True, null=True)
+    shipping_fee = models.FloatField(blank=False, null=True)
+
     payment = models.ForeignKey(
         'Payment', on_delete=models.SET_NULL, blank=True, null=True)
     coupon = models.ForeignKey(
@@ -204,17 +161,7 @@ class Order(models.Model):
     received = models.BooleanField(default=False)
     refund_requested = models.BooleanField(default=False)
     refund_granted = models.BooleanField(default=False)
-
-    '''
-    1. Item added to cart
-    2. Adding a billing address
-    (Failed checkout)
-    3. Payment
-    (Preprocessing, processing, packaging etc.)
-    4. Being delivered
-    5. Received
-    6. Refunds
-    '''
+    payment_reference = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
@@ -223,24 +170,42 @@ class Order(models.Model):
         total = 0
         for order_item in self.items.all():
             total += order_item.get_final_price()
-        if self.coupon:
-            total += self.coupon.amount
         return total
+
+    def get_order_total(self):
+        total = self.get_total()
+        if self.coupon:
+            total -= self.coupon.amount
+            return total
+        return total
+
+    def get_order_final_total(self):
+        total = self.get_order_total()
+        if self.shipping_fee:
+            total += self.shipping_fee
+            return total
+        return total
+
+
+def add_ref_code(sender, instance, created, *args, **kwargs):
+    if created:
+        instance.ref_code = instance.id
+        instance.save()
+
+
+post_save.connect(add_ref_code, sender=Order)
 
 
 class Address(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)
-    street_address = models.CharField(max_length=100, blank=False, null=True)
-    apartment_address = models.CharField(
-        max_length=100, blank=False, null=True)
-    country = CountryField(multiple=False, blank=False, null=True)
-    zip = models.CharField(max_length=100, blank=True)
-    phone = models.CharField(max_length=20, blank=False, null=True)
-    state = models.CharField(max_length=120, blank=False, null=True)
-    address_type = models.CharField(
-        max_length=1, choices=ADDRESS_CHOICES, blank=False, null=True)
+    address = models.TextField(blank=False, null=True)
+    country = models.CharField(max_length=100, blank=False, null=True)
+    zip = models.CharField(max_length=100, blank=True, null=True)
+    phone = models.CharField(max_length=100, blank=False, null=True)
+    state = models.CharField(max_length=255, blank=False, null=True)
     default = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True, blank=False, null=True)
 
     def __str__(self):
         return self.user.username
@@ -261,7 +226,7 @@ class Payment(models.Model):
 
 
 class Coupon(models.Model):
-    code = models.CharField(max_length=15, default='None')
+    code = models.CharField(max_length=15, blank=False, null=True)
     amount = models.FloatField()
 
     def __str__(self):
@@ -349,6 +314,7 @@ class Reviews(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    rating = models.IntegerField(blank=False, null=True)
     review = models.TextField()
     time = models.DateTimeField(auto_now_add=True)
 
@@ -402,3 +368,12 @@ class Team(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class RecentlyViewed(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.username

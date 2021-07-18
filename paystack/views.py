@@ -74,7 +74,6 @@ def on_payment_verified(request, sender, ref, amount, **kwargs):
     order_items.update(ordered=True)
     for item in order_items:
         item.save()
-
     order.payment = payment
     order.save()
     # send email to user
